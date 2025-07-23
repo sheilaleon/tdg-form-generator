@@ -37,7 +37,7 @@ export function processFormTemplate(template: FormTemplate): ProcessedForm {
           type: 'textarea',
           label: `Comments`,
           placeholder: 'Enter additional comments...',
-          helpText: 'Optional comments for this field',
+          helpText: undefined,
           required: false,
           group: field.category,
           fullWidth: true,

@@ -87,25 +87,21 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
       }
 
       return (
-        <fieldset key={key} className="space-y-4 rounded-lg py-4 md:col-span-2">
-          <legend className="sr-only px-2 text-base font-semibold text-gray-900">
-            {field.fieldsetTitle}
-          </legend>
+        <fieldset key={key} className="space-y-4 rounded-lg py-2 md:col-span-2">
+          <legend className="sr-only">{field.fieldsetTitle}</legend>
 
           {/* Main field and photo side by side */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid items-start gap-8 md:grid-cols-2">
             <div>
               <DynamicFormField field={field} form={form} />
             </div>
 
             {photoField && (
-              <div>
-                <DynamicFormField
-                  field={photoField}
-                  form={form}
-                  mainFieldName={field.name}
-                />
-              </div>
+              <DynamicFormField
+                field={photoField}
+                form={form}
+                mainFieldName={field.name}
+              />
             )}
           </div>
 
@@ -144,7 +140,7 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
             </div>
             <Card key={groupName} className="mb-8 py-2">
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 gap-x-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
                   {fields.map((field, index) =>
                     renderField(field, index, fields),
                   )}
