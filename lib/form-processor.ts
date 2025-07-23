@@ -19,37 +19,66 @@ export function processFormTemplate(template: FormTemplate): ProcessedForm {
   const processedFields: ProcessedField[] = [];
 
   for (const field of sortedFields) {
-    // Add main field
-    const mainField = processField(field);
-    if (mainField) {
-      processedFields.push(mainField);
-    }
-
-    // Add comment field if required
-    if (field.commentField === 1 && field.commentFieldName) {
-      const commentField: ProcessedField = {
-        name: field.commentFieldName,
-        type: 'textarea',
-        label: `${field.title} - Comments`,
-        placeholder: 'Enter additional comments...',
-        required: false,
-        group: field.category,
-        fullWidth: true,
-      };
-      processedFields.push(commentField);
-    }
-
-    // Add photo field if required
+    // Check if this field requires a photo - if so, create a fieldset
     if (field.requiresPhoto === 1) {
+      // Add main field
+      const mainField = processField(field);
+      if (mainField) {
+        // Mark as part of a fieldset
+        mainField.isFieldsetStart = true;
+        mainField.fieldsetTitle = field.title;
+        processedFields.push(mainField);
+      }
+
+      // Add comment field if required
+      if (field.commentField === 1 && field.commentFieldName) {
+        const commentField: ProcessedField = {
+          name: field.commentFieldName,
+          type: 'textarea',
+          label: `Comments`,
+          placeholder: 'Enter additional comments...',
+          helpText: 'Optional comments for this field',
+          required: false,
+          group: field.category,
+          fullWidth: true,
+          isFieldsetMember: true,
+        };
+        processedFields.push(commentField);
+      }
+
+      // Add photo field
       const photoField: ProcessedField = {
         name: `${field.fieldName}_photo`,
         type: 'photo',
-        label: `${field.title} - Photo`,
-        required: field.inputReq === 1,
+        label: `Photo`,
+        required: true,
         group: field.category,
         fullWidth: true,
+        isFieldsetMember: true,
+        isFieldsetEnd: true,
       };
       processedFields.push(photoField);
+    } else {
+      // Regular field without photo requirement
+      const mainField = processField(field);
+      if (mainField) {
+        processedFields.push(mainField);
+      }
+
+      // Add comment field if required
+      if (field.commentField === 1 && field.commentFieldName) {
+        const commentField: ProcessedField = {
+          name: field.commentFieldName,
+          type: 'textarea',
+          label: `${field.title} - Comments`,
+          placeholder: 'Enter additional comments...',
+          helpText: 'Optional comments for this field',
+          required: false,
+          group: field.category,
+          fullWidth: true,
+        };
+        processedFields.push(commentField);
+      }
     }
   }
 

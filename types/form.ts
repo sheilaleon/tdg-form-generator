@@ -46,6 +46,10 @@ export interface ProcessedField {
   defaultValue?: string | number | boolean;
   options?: Array<{ label: string; value: string }>;
   fullWidth?: boolean;
+  isFieldsetStart?: boolean;
+  isFieldsetMember?: boolean;
+  isFieldsetEnd?: boolean;
+  fieldsetTitle?: string;
 }
 
 export interface ProcessedForm {
