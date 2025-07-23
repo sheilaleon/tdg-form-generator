@@ -13,20 +13,23 @@ import {
 
 import { FormRenderer } from '@/components/form-renderer';
 
-import { formTemplates } from '@/lib/form-templates';
+import { formSpecs } from '@/lib/form-specs';
 
 export default function Home() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [submittedData, setSubmittedData] = useState<any>(null);
 
   const handleTemplateChange = (id: string) => {
     setSelectedTemplateId(id);
   };
 
-  const selectedTemplate = formTemplates.find(
-    (template) => template.formId === selectedTemplateId,
+  const selectedTemplate = formSpecs.find(
+    (template) => template.id === selectedTemplateId,
   );
 
-  console.log(selectedTemplate);
+  const handleFormSubmit = (data: any) => {
+    setSubmittedData(data);
+  };
 
   return (
     <div>
@@ -45,9 +48,9 @@ export default function Home() {
                 <SelectValue placeholder="Select a form template" />
               </SelectTrigger>
               <SelectContent className="w-full">
-                {formTemplates.map((template) => (
-                  <SelectItem key={template.formId} value={template.formId}>
-                    {template.formName}
+                {formSpecs.map((form) => (
+                  <SelectItem key={form.id} value={form.id}>
+                    {form.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -57,17 +60,24 @@ export default function Home() {
       </header>
       <main className="mx-auto max-w-2xl px-4 py-8">
         <div className="grid gap-8">
-          <Card>
-            {selectedTemplate ? (
-              <>
-                <CardHeader>
-                  <h2>Form Title</h2>
-                </CardHeader>
-                <CardContent>
-                  <FormRenderer fields={selectedTemplate.fields} />
-                </CardContent>
-              </>
-            ) : (
+          {selectedTemplate ? (
+            <>
+              <div className="space-y-3">
+                <h2 className="text-2xl leading-none font-semibold">
+                  {selectedTemplate.title}
+                </h2>
+                <p className="text-muted-foreground">
+                  All fields required unless specified
+                </p>
+              </div>
+              <FormRenderer
+                key={selectedTemplateId}
+                spec={selectedTemplate}
+                onSubmit={handleFormSubmit}
+              />
+            </>
+          ) : (
+            <Card>
               <CardContent>
                 <div className="bg-muted rounded-md p-4 text-center">
                   <p className="text-muted-foreground">
@@ -78,19 +88,27 @@ export default function Home() {
                   </p>
                 </div>
               </CardContent>
-            )}
-          </Card>
-          <Card>
+            </Card>
+          )}
+          <Card className="mt-8">
             <CardHeader>
-              <h2>Form Submission Data</h2>
+              <h2 className="text-xl leading-none font-semibold">
+                Form Submission Data
+              </h2>
             </CardHeader>
             <CardContent>
-              <div className="bg-muted rounded-md p-4 text-center">
-                <p className="text-muted-foreground">No data submitted yet</p>
-                <p className="text-muted-foreground text-sm">
-                  Fill out and submit the form to view JSON output
-                </p>
-              </div>
+              {submittedData ? (
+                <div>
+                  <pre>{JSON.stringify(submittedData, null, 2)}</pre>
+                </div>
+              ) : (
+                <div className="bg-muted rounded-md p-4 text-center">
+                  <p className="text-muted-foreground">No data submitted yet</p>
+                  <p className="text-muted-foreground text-sm">
+                    Fill out and submit the form to view JSON output
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

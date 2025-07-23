@@ -10,18 +10,19 @@
   "useTabs": false,
   "endOfLine": "auto",
   "plugins": [
-      "@trivago/prettier-plugin-sort-imports",
-      "prettier-plugin-tailwindcss"
+    "@trivago/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss"
   ],
   "importOrder": [
-      "^react$",
-      "^next(/.*)?$",
-      "next-themes",
-      "^@/components/ui/(.*)$",
-      "^@/components/(.*)$",
-      "^@/lib/(.*)$",
-      "^@/hooks/(.*)$",
-      "<THIRD_PARTY_MODULES>"
+    "^react$",
+    "^next(/.*)?$",
+    "next-themes",
+    "<THIRD_PARTY_MODULES>",
+    "^@/components/ui/(.*)$",
+    "^@/components/(.*)$",
+    "^@/hooks/(.*)$",
+    "^@/lib/(.*)$",
+    "^@/types/(.*)$"
   ],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true

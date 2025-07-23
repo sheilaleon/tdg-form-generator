@@ -1,6 +1,6 @@
 export const formTemplates = [
   {
-    formName: 'Aerial Inspection',
+    formName: 'Aerial Inspection Form',
     formId: '694dd4388e784ef29df97bdd5734ff6d',
     fields: [
       {
