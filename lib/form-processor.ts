@@ -35,7 +35,7 @@ export function processFormTemplate(template: FormTemplate): ProcessedForm {
         const commentField: ProcessedField = {
           name: field.commentFieldName,
           type: 'textarea',
-          label: `Comments`,
+          label: `Comments for ${field.title}`,
           placeholder: 'Enter additional comments...',
           helpText: undefined,
           required: false,
@@ -50,7 +50,7 @@ export function processFormTemplate(template: FormTemplate): ProcessedForm {
       const photoField: ProcessedField = {
         name: `${field.fieldName}_photo`,
         type: 'photo',
-        label: `Photo`,
+        label: `Photo for ${field.title}`,
         required: true,
         group: field.category,
         fullWidth: true,

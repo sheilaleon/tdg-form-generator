@@ -87,7 +87,7 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
       }
 
       return (
-        <fieldset key={key} className="space-y-4 rounded-lg py-2 md:col-span-2">
+        <fieldset key={key} className="space-y-4 rounded-lg py-4 md:col-span-2">
           <legend className="sr-only">{field.fieldsetTitle}</legend>
 
           {/* Main field and photo side by side */}
