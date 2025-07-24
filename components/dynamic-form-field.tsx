@@ -23,6 +23,7 @@ import { Textarea } from './ui/textarea';
 import { format } from 'date-fns';
 import { FileText, Plus, Upload, X } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid';
 
 import { ProcessedField } from '@/types/form';
 
@@ -104,7 +105,7 @@ export function DynamicFormField({
     const previews: PhotoPreview[] = pickedFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
-      id: `${file.name}-${crypto.randomUUID()}`,
+      id: `${file.name}-${uuidv4()}`,
     }));
     setFilePreviews((prev) => (isMulti ? [...prev, ...previews] : previews));
 
