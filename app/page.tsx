@@ -45,7 +45,7 @@ export default function Home() {
             <h1>Form Builder</h1>
           </div>
 
-          <div className="w-full sm:w-60">
+          <div className="w-full sm:w-52">
             <Select
               value={selectedTemplateId}
               onValueChange={handleTemplateChange}

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { DynamicFormField } from './dynamic-form-field';
 import { Card, CardContent } from './ui/card';
 import { Form } from './ui/form';
@@ -36,7 +38,53 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
     resolver: zodResolver(schema),
     defaultValues,
     mode: 'onChange',
+    shouldFocusError: false, // Disable React Hook Form's auto-focus
   });
+
+  // Scroll to first validation error
+  useEffect(() => {
+    const firstError = Object.keys(form.formState.errors)[0];
+    if (firstError) {
+      // Try to find the element by field name first
+      let errorElement = document.getElementById(firstError);
+
+      // If not found, try the upload variant for file/photo fields
+      if (!errorElement) {
+        errorElement = document.getElementById(`${firstError}-upload`);
+      }
+
+      // For file/photo fields, find the visible button instead of the hidden input
+      if (errorElement && errorElement.classList.contains('hidden')) {
+        const parentDiv = errorElement.parentElement;
+        const visibleButton = parentDiv?.querySelector(
+          'button[type="button"]',
+        ) as HTMLElement;
+        if (visibleButton) {
+          errorElement = visibleButton;
+        }
+      }
+
+      if (errorElement) {
+        // Scroll to the element with some offset for better visibility
+        const elementRect = errorElement.getBoundingClientRect();
+        const absoluteElementTop = elementRect.top + window.pageYOffset;
+        const middle = absoluteElementTop - window.innerHeight / 2;
+
+        window.scrollTo({
+          top: middle,
+          behavior: 'smooth',
+        });
+
+        // Focus the element for better accessibility
+        // Only focus if the element is focusable (not hidden)
+        setTimeout(() => {
+          if (errorElement && !errorElement.classList.contains('hidden')) {
+            errorElement.focus({ preventScroll: true });
+          }
+        }, 500); // Wait for scroll animation to complete
+      }
+    }
+  }, [form.formState.errors]);
 
   // Group fields by their group property
   const groupedFields = spec.fields.reduce(
@@ -98,6 +146,12 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
   const handleReset = () => {
     form.reset(defaultValues);
     onReset();
+
+    // Reset scroll position to top of the page
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   };
 
   const renderField = (field: any, index: number, fields: any[]) => {
