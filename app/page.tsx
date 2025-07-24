@@ -2,7 +2,19 @@
 
 import { useState } from 'react';
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { AlertTriangle, Bug } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -11,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 
 import { FormRenderer } from '@/components/form-renderer';
 
@@ -19,6 +32,8 @@ import { formSpecs } from '@/lib/form-specs';
 export default function Home() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [submittedData, setSubmittedData] = useState<any>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [simulateError, setSimulateError] = useState(false);
 
   const handleTemplateChange = (id: string) => {
     setSelectedTemplateId(id);
@@ -31,6 +46,16 @@ export default function Home() {
 
   const handleFormSubmit = (data: any) => {
     setSubmittedData(data);
+
+    toast.success('Form submitted successfully!', {
+      action: {
+        label: 'View Form JSON Output',
+        onClick: () => setIsDrawerOpen(true),
+      },
+      duration: 8000,
+      position: 'top-center',
+      richColors: true,
+    });
   };
 
   const handleFormReset = () => {
@@ -65,7 +90,7 @@ export default function Home() {
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <div className="grid gap-8">
+        <div className="grid gap-6">
           {selectedTemplate ? (
             <>
               <div className="space-y-3">
@@ -81,6 +106,7 @@ export default function Home() {
                 spec={selectedTemplate}
                 onSubmit={handleFormSubmit}
                 onReset={handleFormReset}
+                simulateError={simulateError}
               />
             </>
           ) : (
@@ -97,42 +123,76 @@ export default function Home() {
               </CardContent>
             </Card>
           )}
-          <Card className="mt-8">
-            <CardHeader>
-              <h2 className="text-xl leading-none font-semibold">
-                Form Submission Data
-              </h2>
-            </CardHeader>
-            <CardContent>
-              {submittedData ? (
-                <div>
-                  <ScrollArea
-                    className="w-96 rounded-md bg-slate-700 whitespace-nowrap text-slate-100"
-                    type="always"
-                  >
-                    <pre className="w-max p-4 text-sm break-words whitespace-pre-wrap">
-                      {JSON.stringify(submittedData, null, 2)}
-                    </pre>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
-                  {/* <div className="max-h-96 max-w-20 overflow-x-clip overflow-y-auto rounded ">
-                    <pre className="scrollable w-full p-4 text-sm break-words whitespace-pre-wrap">
-                      {JSON.stringify(submittedData, null, 2)}
-                    </pre>
-                  </div> */}
-                </div>
-              ) : (
-                <div className="bg-muted rounded-md p-4 text-center">
-                  <p className="text-muted-foreground">No data submitted yet</p>
-                  <p className="text-muted-foreground text-sm">
-                    Fill out and submit the form to view JSON output
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
+        <Toaster />
       </main>
+
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerTrigger className="relative" asChild>
+          <Button
+            size="lg"
+            className="fixed right-6 bottom-6 m-0 h-14 w-14 rounded-full bg-orange-500 p-0 text-white shadow-lg transition-shadow hover:bg-orange-600 hover:shadow-xl"
+          >
+            <Bug className="h-6 w-6" />
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-[80vh]">
+          <DrawerHeader className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <DrawerTitle className="flex items-center gap-2">
+                  <Bug className="h-5 w-5" />
+                  Debug - Form Submission Data
+                </DrawerTitle>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-4">
+              <div className="flex items-center gap-2.5 text-left">
+                <Switch
+                  id="simulate-error"
+                  checked={simulateError}
+                  onCheckedChange={setSimulateError}
+                />
+                <Label
+                  htmlFor="simulate-error"
+                  className="flex cursor-pointer items-center gap-2 text-sm font-medium"
+                >
+                  <AlertTriangle className="h-4 w-4 flex-none" />
+                  Simulate Submission Error?
+                </Label>
+                {simulateError && (
+                  <div className="rounded text-xs text-red-600">
+                    Next submission will fail
+                  </div>
+                )}
+              </div>
+            </div>
+          </DrawerHeader>
+          <div className="px-4 pb-4">
+            {submittedData ? (
+              <div>
+                <ScrollArea
+                  className="w-full rounded-md bg-slate-700 whitespace-nowrap text-slate-100"
+                  type="always"
+                >
+                  <pre className="w-max p-4 text-sm break-words whitespace-pre-wrap">
+                    {JSON.stringify(submittedData, null, 2)}
+                  </pre>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </div>
+            ) : (
+              <div className="bg-muted rounded-md p-4 text-center">
+                <p className="text-muted-foreground">No data submitted yet</p>
+                <p className="text-muted-foreground text-sm">
+                  Fill out and submit the form to view JSON output
+                </p>
+              </div>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

@@ -1,13 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { DynamicFormField } from './dynamic-form-field';
-import { Card, CardContent } from './ui/card';
 import { Form } from './ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 import { fileToDataUrl } from '@/lib/file-to-data-url';
 import { createFormSchema } from '@/lib/form-validation';
@@ -19,10 +20,17 @@ interface FormRendererProps {
   spec: ProcessedForm;
   onSubmit: (data: any) => void;
   onReset: () => void;
+  simulateError?: boolean;
 }
 
-export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
+export function FormRenderer({
+  spec,
+  onSubmit,
+  onReset,
+  simulateError = false,
+}: FormRendererProps) {
   const schema = createFormSchema(spec);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Create default values from the spec
   const defaultValues = spec.fields.reduce(
@@ -41,6 +49,14 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
     mode: 'onChange',
     shouldFocusError: false, // Disable React Hook Form's auto-focus
   });
+
+  // Clear alerts when form values change
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (submissionError) setSubmissionError(null);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, submissionError]);
 
   // Scroll to first validation error
   useEffect(() => {
@@ -102,10 +118,26 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
 
   const isSubmitting = form.formState.isSubmitting;
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   const handleSubmit = async (data: any) => {
     try {
+      setSubmissionError(null);
+
       // Mock delay to simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Simulate error if debug error toggle is enabled
+      if (simulateError) {
+        throw new Error(
+          'Simulated submission error: Server temporarily unavailable',
+        );
+      }
 
       const processedData = { ...data };
 
@@ -138,9 +170,19 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
       }
 
       onSubmit(processedData);
-      form.reset(defaultValues);
+
+      setTimeout(() => {
+        form.reset(defaultValues);
+
+        scrollToTop();
+      }, 1000);
     } catch (error) {
       console.error('Error processing form submission:', error);
+      setSubmissionError(
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+      );
+
+      scrollToTop();
     }
   };
 
@@ -148,12 +190,11 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
     form.reset(defaultValues);
     onReset();
 
+    setSubmissionError(null);
+
     // Reset scroll position to top of the page after DOM updates
     setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
+      scrollToTop();
     }, 100);
   };
 
@@ -248,6 +289,19 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>
+        {submissionError && (
+          <Alert variant="destructive" className="mb-8">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>
+                We couldn’t save your changes at this time. No data has been
+                lost. Please try again shortly.
+              </strong>
+              {submissionError}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {Object.entries(groupedFields).map(([groupName, fields], i) => (
           <div key={i}>
             <div>
