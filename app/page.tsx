@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -144,6 +145,10 @@ export default function Home() {
                   <Bug className="h-5 w-5" />
                   Debug - Form Submission Data
                 </DrawerTitle>
+                <DrawerDescription>
+                  View and inspect form submission data in JSON format. Toggle
+                  error simulation to test error handling.
+                </DrawerDescription>
               </div>
             </div>
 
