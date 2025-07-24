@@ -1,8 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from 'react';
 
-import { Button } from './ui/button';
-import { Checkbox } from './ui/checkbox';
+import { CheckboxField } from './form-fields/checkbox-field';
+import { DateTimeField } from './form-fields/datetime-field';
+import { NumberField } from './form-fields/number-field';
+import { SelectField } from './form-fields/select-field';
+import { TextField } from './form-fields/text-field';
+import { TextareaField } from './form-fields/textarea-field';
+import { FileText, Plus, Upload, X } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid';
+
+import { Button } from '@/components/ui/button';
 import {
   FormControl,
   FormDescription,
@@ -10,20 +19,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from './ui/form';
-import { Input } from './ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { Textarea } from './ui/textarea';
-import { format } from 'date-fns';
-import { FileText, Plus, Upload, X } from 'lucide-react';
-import { UseFormReturn } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
+} from '@/components/ui/form';
 
 import { ProcessedField } from '@/types/form';
 
@@ -154,99 +150,44 @@ export function DynamicFormField({
               switch (field.type) {
                 case 'text':
                   return (
-                    <Input
-                      id={field.name}
-                      name={formField.name}
+                    <TextField
+                      field={field}
                       value={(formField.value as string) ?? ''}
                       onChange={formField.onChange}
                       onBlur={formField.onBlur}
-                      placeholder={field.placeholder}
-                      aria-describedby={
-                        field.helpText ? `${field.name}-help` : undefined
-                      }
+                      disabled={disabled}
                     />
                   );
                 case 'textarea':
                   return (
-                    <Textarea
-                      id={field.name}
-                      name={formField.name}
+                    <TextareaField
+                      field={field}
                       value={(formField.value as string) ?? ''}
                       onChange={formField.onChange}
                       onBlur={formField.onBlur}
                       ref={formField.ref}
-                      placeholder={field.placeholder}
-                      className="min-h-[70px] w-full"
-                      aria-describedby={
-                        field.helpText ? `${field.name}-help` : undefined
-                      }
                       disabled={disabled}
                     />
                   );
                 case 'number':
                   return (
-                    <Input
-                      id={field.name}
-                      name={formField.name}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={
-                        formField.value === undefined ||
-                        formField.value === null
-                          ? ''
-                          : String(formField.value)
-                      }
-                      onChange={(e) => {
-                        const val = e.target.value;
-
-                        // Only allow digits
-                        if (/^\d*$/.test(val)) {
-                          // Valid input, update state
-                          formField.onChange(
-                            val === '' ? undefined : Number(val),
-                          );
-                        } else {
-                          // Invalid input, do NOT update form state
-                          // This stops React from re-rendering with invalid value
-                        }
-                      }}
+                    <NumberField
+                      field={field}
+                      value={formField.value}
+                      onChange={formField.onChange}
                       onBlur={formField.onBlur}
                       ref={formField.ref}
-                      placeholder={field.placeholder}
-                      className="w-full"
-                      aria-describedby={
-                        field.helpText ? `${field.name}-help` : undefined
-                      }
                       disabled={disabled}
                     />
                   );
                 case 'select':
-                  const options = field.options || [];
                   return (
-                    <Select
+                    <SelectField
+                      field={field}
                       value={formField.value?.toString() || ''}
-                      onValueChange={(value) => formField.onChange(value)}
+                      onChange={formField.onChange}
                       disabled={disabled}
-                    >
-                      <SelectTrigger
-                        className="w-full"
-                        aria-describedby={
-                          field.helpText ? `${field.name}-help` : undefined
-                        }
-                      >
-                        <SelectValue
-                          placeholder={field.placeholder || 'Select an option'}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {options.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   );
                 case 'photo':
                 case 'file':
@@ -350,46 +291,24 @@ export function DynamicFormField({
                     </div>
                   );
                 case 'datetime':
-                  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm");
-
                   return (
-                    <Input
-                      type="datetime-local"
-                      id={field.name}
-                      name={formField.name}
+                    <DateTimeField
+                      field={field}
                       value={(formField.value as string) ?? ''}
                       onChange={formField.onChange}
                       onBlur={formField.onBlur}
-                      placeholder={field.placeholder}
-                      max={now}
-                      aria-describedby={
-                        field.helpText ? `${field.name}-help` : undefined
-                      }
                       disabled={disabled}
                     />
                   );
 
                 case 'checkbox':
                   return (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={field.name}
-                        checked={formField.value || false}
-                        onCheckedChange={formField.onChange}
-                        aria-describedby={
-                          field.helpText ? `${field.name}-help` : undefined
-                        }
-                        disabled={disabled}
-                      />
-                      <label
-                        htmlFor={field.name}
-                        className={`text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
-                          disabled ? 'text-gray-400' : ''
-                        }`}
-                      >
-                        Yes
-                      </label>
-                    </div>
+                    <CheckboxField
+                      field={field}
+                      checked={formField.value || false}
+                      onChange={formField.onChange}
+                      disabled={disabled}
+                    />
                   );
 
                 default:

@@ -271,13 +271,14 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
             size="lg"
             disabled={form.formState.isSubmitting}
           >
-            Submit
+            {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
             type="reset"
             variant="outline"
             size="lg"
             onClick={() => handleReset()}
+            disabled={form.formState.isSubmitting}
           >
             Reset Form
           </Button>
