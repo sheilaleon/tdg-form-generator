@@ -1,6 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TDG Form Generator
+
+A dynamic form builder and renderer for creating and testing complex forms with various field types, validation, and file uploads. Built with Next.js, React Hook Form, and Zod validation.
+
+## Features
+
+### Dynamic Form Generation
+
+- **Multiple Field Types**: Text, textarea, number, select, checkbox, datetime, photo/file uploads
+- **Conditional Fields**: Photo fields that appear based on other field values
+- **Fieldset Grouping**: Organised form sections with related fields
+- **Validation**: Zod-based schema validation with custom rules
+- **File Handling**: Photo and document upload capabilities with data URL conversion
+
+### Form Templates
+
+The application includes pre-built form templates including:
+
+- **Aerial Inspection Form**: Infrastructure inspection form with photo documentation
+- **Contact Form**: Simple contact form for testing basic functionality
+
+### Debug Panel
+
+An integrated debug panel (accessible via the orange bug icon) provides:
+
+- **JSON Output Viewer**: Real-time display of form submission data in formatted JSON
+- **Error Simulation**: Toggle to simulate submission errors for testing error handlinggation through complex form data
 
 ## Getting Started
+
+### Prerequisites
+
+- Node.js 22.x or higher
+
+### Development Server
 
 First, run the development server:
 
@@ -14,23 +46,43 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the form builder.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Select a form template from the dropdown
+2. Fill out the form fields
+3. Submit the form to see data processing
+4. Use the debug panel (bug icon) to inspect the submitted JSON data
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development
 
-## Learn More
+### Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+- `npm run prettier:fix` - Format code with Prettier
+- `npm run test` - Run Jest tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+tdg-form-generator/
+├── app/                 # Next.js app router pages and layouts
+├── components/          # React components including form fields and UI elements
+│   ├── form-fields/     # Individual form field components
+│   └── ui/              # shadcn components
+├── lib/                 # Utility functions, form processing, and validation
+├── types/               # TypeScript type definitions
+├── public/              # Static assets
+└── ...                  # Config files (package.json, tsconfig.json, etc.)
+```
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: Next.js 15 with App Router
+- **UI**: React 19, Tailwind CSS, shadcn
+- **Forms**: React Hook Form with Zod validation
+- **Notifications**: Sonner for toast messages
+- **Testing**: Jest with Testing Library

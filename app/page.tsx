@@ -173,7 +173,7 @@ export default function Home() {
             {submittedData ? (
               <div>
                 <ScrollArea
-                  className="w-full rounded-md bg-slate-700 whitespace-nowrap text-slate-100"
+                  className="h-52 w-full rounded-md bg-slate-700 whitespace-nowrap text-slate-100"
                   type="always"
                 >
                   <pre className="w-max p-4 text-sm break-words whitespace-pre-wrap">
