@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
 import {
   FormControl,
   FormDescription,
@@ -29,6 +30,8 @@ interface DynamicFormFieldProps {
   field: ProcessedField;
   form: UseFormReturn<any>;
   mainFieldName?: string;
+  onReset?: () => void;
+  disabled?: boolean;
 }
 
 interface PhotoPreview {
@@ -40,7 +43,9 @@ interface PhotoPreview {
 export function DynamicFormField({
   field,
   form,
+  disabled = false,
   mainFieldName,
+  onReset,
 }: DynamicFormFieldProps) {
   const [filePreviews, setFilePreviews] = useState<PhotoPreview[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -55,17 +60,42 @@ export function DynamicFormField({
   // Check if this is a main photo field (not part of a fieldset)
   const isMainPhotoField = field.type === 'photo' && !mainFieldName;
 
+  // Watch for form reset and clear previews
+  const fieldValue = form.watch(field.name);
+  useEffect(() => {
+    if (!fieldValue || (Array.isArray(fieldValue) && fieldValue.length === 0)) {
+      setFilePreviews([]);
+      setFileName(null);
+    }
+  }, [fieldValue]);
+
+  // Listen for external reset calls
+  useEffect(() => {
+    if (onReset) {
+      const resetHandler = () => {
+        setFilePreviews([]);
+        setFileName(null);
+      };
+
+      (onReset as any).handler = resetHandler;
+    }
+  }, [onReset]);
+
   const handleFileUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
     onChange: (value: any) => void,
   ) => {
+    if (disabled) return;
+
     const files = event.target.files;
     if (!files || files.length === 0) return;
+
     const isMulti = isMainPhotoField;
     const pickedFiles = isMulti ? Array.from(files) : [files[0]];
     const invalid = pickedFiles.find(
       (f) => !f.type.startsWith('image/') || f.size > 5 * 1024 * 1024,
     );
+
     if (invalid) {
       form.setError(field.name, { message: 'Images only and each < 5 MB' });
       return;
@@ -76,7 +106,6 @@ export function DynamicFormField({
       preview: URL.createObjectURL(file),
       id: `${file.name}-${crypto.randomUUID()}`,
     }));
-
     setFilePreviews((prev) => (isMulti ? [...prev, ...previews] : previews));
 
     onChange(
@@ -97,6 +126,8 @@ export function DynamicFormField({
   };
 
   const clearAllFiles = (onChange: (value: any) => void) => {
+    if (disabled) return;
+
     setFilePreviews([]);
     setFileName(null);
     onChange(null);
@@ -144,10 +175,11 @@ export function DynamicFormField({
                       onBlur={formField.onBlur}
                       ref={formField.ref}
                       placeholder={field.placeholder}
-                      className="min-h-[100px] w-full"
+                      className="min-h-[70px] w-full"
                       aria-describedby={
                         field.helpText ? `${field.name}-help` : undefined
                       }
+                      disabled={disabled}
                     />
                   );
                 case 'number':
@@ -185,6 +217,7 @@ export function DynamicFormField({
                       aria-describedby={
                         field.helpText ? `${field.name}-help` : undefined
                       }
+                      disabled={disabled}
                     />
                   );
                 case 'select':
@@ -193,6 +226,7 @@ export function DynamicFormField({
                     <Select
                       value={formField.value?.toString() || ''}
                       onValueChange={(value) => formField.onChange(value)}
+                      disabled={disabled}
                     >
                       <SelectTrigger
                         className="w-full"
@@ -222,11 +256,13 @@ export function DynamicFormField({
                           type="button"
                           variant="outline"
                           onClick={() =>
+                            !disabled &&
                             document
                               .getElementById(`${field.name}-upload`)
                               ?.click()
                           }
-                          className="flex items-center gap-2 hover:cursor-pointer"
+                          className="flex items-center gap-2"
+                          disabled={disabled}
                         >
                           {isMainPhotoField ? (
                             <Plus className="h-4 w-4" />
@@ -243,7 +279,8 @@ export function DynamicFormField({
                             type="button"
                             variant="outline"
                             onClick={() => clearAllFiles(formField.onChange)}
-                            className="flex items-center gap-2 text-red-600 hover:cursor-pointer hover:text-red-700"
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                            disabled={disabled}
                           >
                             <X className="h-4 w-4" />
                             Remove All
@@ -267,6 +304,7 @@ export function DynamicFormField({
                           handleFileUpload(e, formField.onChange)
                         }
                         className="hidden"
+                        disabled={disabled}
                       />
 
                       {filePreviews.length > 0 && (
@@ -290,7 +328,8 @@ export function DynamicFormField({
                                 onClick={() =>
                                   removePhoto(preview.id, formField.onChange)
                                 }
-                                className="absolute top-1 right-1 h-6 w-6 p-0 hover:cursor-pointer"
+                                className="absolute top-1 right-1 h-6 w-6 p-0"
+                                disabled={disabled}
                               >
                                 <X className="h-3 w-3" />
                               </Button>
@@ -325,8 +364,35 @@ export function DynamicFormField({
                       aria-describedby={
                         field.helpText ? `${field.name}-help` : undefined
                       }
+                      disabled={disabled}
                     />
                   );
+
+                case 'checkbox':
+                  return (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={field.name}
+                        checked={formField.value || false}
+                        onCheckedChange={formField.onChange}
+                        aria-describedby={
+                          field.helpText ? `${field.name}-help` : undefined
+                        }
+                        disabled={disabled}
+                      />
+                      <label
+                        htmlFor={field.name}
+                        className={`text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                          disabled ? 'text-gray-400' : ''
+                        }`}
+                      >
+                        Yes
+                      </label>
+                    </div>
+                  );
+
+                default:
+                  return null;
               }
             })()}
           </FormControl>

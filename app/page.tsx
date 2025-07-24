@@ -21,6 +21,7 @@ export default function Home() {
 
   const handleTemplateChange = (id: string) => {
     setSelectedTemplateId(id);
+    setSubmittedData(null);
   };
 
   const selectedTemplate = formSpecs.find(
@@ -29,6 +30,10 @@ export default function Home() {
 
   const handleFormSubmit = (data: any) => {
     setSubmittedData(data);
+  };
+
+  const handleFormReset = () => {
+    setSubmittedData(null);
   };
 
   return (
@@ -74,6 +79,7 @@ export default function Home() {
                 key={selectedTemplateId}
                 spec={selectedTemplate}
                 onSubmit={handleFormSubmit}
+                onReset={handleFormReset}
               />
             </>
           ) : (
@@ -98,8 +104,10 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               {submittedData ? (
-                <div>
-                  <pre>{JSON.stringify(submittedData, null, 2)}</pre>
+                <div className="max-h-96 overflow-y-auto rounded bg-slate-700 text-slate-100">
+                  <pre className="scrollable max-w-xl p-4 text-sm break-words whitespace-pre-wrap">
+                    {JSON.stringify(submittedData, null, 2)}
+                  </pre>
                 </div>
               ) : (
                 <div className="bg-muted rounded-md p-4 text-center">

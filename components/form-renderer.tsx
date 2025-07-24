@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 
+import { fileToDataUrl } from '@/lib/file-to-data-url';
 import { createFormSchema } from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
 
@@ -14,15 +15,16 @@ import { ProcessedForm } from '@/types/form';
 interface FormRendererProps {
   spec: ProcessedForm;
   onSubmit: (data: any) => void;
+  onReset: () => void;
 }
 
-export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
+export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
   const schema = createFormSchema(spec);
 
   // Create default values from the spec
   const defaultValues = spec.fields.reduce(
     (acc, field) => {
-      if (field.defaultValue !== undefined) {
+      if ('defaultValue' in field) {
         acc[field.name] = field.defaultValue;
       }
       return acc;
@@ -49,8 +51,53 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
     {} as Record<string, typeof spec.fields>,
   );
 
-  const handleSubmit = (data: any) => {
-    onSubmit(data);
+  const isSubmitting = form.formState.isSubmitting;
+
+  const handleSubmit = async (data: any) => {
+    try {
+      // Mock delay to simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const processedData = { ...data };
+
+      for (const [key, value] of Object.entries(processedData)) {
+        if (value instanceof File) {
+          // Single file
+          processedData[key] = {
+            name: value.name,
+            size: value.size,
+            type: value.type,
+            lastModified: new Date(value.lastModified).toISOString(),
+            dataUrl: await fileToDataUrl(value),
+          };
+        } else if (
+          Array.isArray(value) &&
+          value.length > 0 &&
+          value[0] instanceof File
+        ) {
+          // Array of files
+          processedData[key] = await Promise.all(
+            value.map(async (file: File) => ({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              lastModified: new Date(file.lastModified).toISOString(),
+              dataUrl: await fileToDataUrl(file),
+            })),
+          );
+        }
+      }
+
+      onSubmit(processedData);
+      form.reset(defaultValues);
+    } catch (error) {
+      console.error('Error processing form submission:', error);
+    }
+  };
+
+  const handleReset = () => {
+    form.reset(defaultValues);
+    onReset();
   };
 
   const renderField = (field: any, index: number, fields: any[]) => {
@@ -87,13 +134,23 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
       }
 
       return (
-        <fieldset key={key} className="space-y-4 rounded-lg py-4 md:col-span-2">
+        <fieldset
+          key={key}
+          className={cn(
+            isSubmitting && 'pointer-events-none opacity-50',
+            'space-y-4 rounded-lg py-4 md:col-span-2',
+          )}
+        >
           <legend className="sr-only">{field.fieldsetTitle}</legend>
 
           {/* Main field and photo side by side */}
           <div className="grid items-start gap-8 md:grid-cols-2">
             <div>
-              <DynamicFormField field={field} form={form} />
+              <DynamicFormField
+                field={field}
+                form={form}
+                disabled={isSubmitting}
+              />
             </div>
 
             {photoField && (
@@ -101,6 +158,7 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
                 field={photoField}
                 form={form}
                 mainFieldName={field.name}
+                disabled={isSubmitting}
               />
             )}
           </div>
@@ -108,7 +166,11 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
           {/* Comment field underneath both */}
           {commentField && (
             <div className="mt-4">
-              <DynamicFormField field={commentField} form={form} />
+              <DynamicFormField
+                field={commentField}
+                form={form}
+                disabled={isSubmitting}
+              />
             </div>
           )}
         </fieldset>
@@ -120,7 +182,7 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
       // Regular field outside of fieldset
       return (
         <div key={key} className={cn(gridClass, 'py-4')}>
-          <DynamicFormField field={field} form={form} />
+          <DynamicFormField field={field} form={form} disabled={isSubmitting} />
         </div>
       );
     }
@@ -158,9 +220,10 @@ export function FormRenderer({ spec, onSubmit }: FormRendererProps) {
             Submit
           </Button>
           <Button
+            type="reset"
             variant="outline"
             size="lg"
-            onClick={() => form.reset(defaultValues)}
+            onClick={() => handleReset()}
           >
             Reset Form
           </Button>

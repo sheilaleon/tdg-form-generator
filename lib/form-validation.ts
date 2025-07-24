@@ -57,7 +57,7 @@ export function createFormSchema(spec: ProcessedForm) {
             val === '' ||
             /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val),
           {
-            message: 'Please enter a valid date and time!',
+            message: 'Please enter a valid date and time',
           },
         );
         break;
