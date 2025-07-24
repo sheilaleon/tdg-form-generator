@@ -7,21 +7,82 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+// Context to track if we're using native select
+const SelectContext = React.createContext<{
+  isNative: boolean;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  disabled?: boolean;
+}>({
+  isNative: false,
+});
+
 function Select({
+  isNative = false,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
+}: React.ComponentProps<typeof SelectPrimitive.Root> & {
+  isNative?: boolean;
+}) {
+  const contextValue = React.useMemo(
+    () => ({
+      isNative,
+      value: props.value,
+      onValueChange: props.onValueChange,
+      disabled: props.disabled,
+    }),
+    [isNative, props.value, props.onValueChange, props.disabled],
+  );
+
+  if (isNative) {
+    // For native select, we don't need the Radix Root component
+    // The actual select element will be rendered by SelectTrigger
+    return (
+      <SelectContext.Provider value={contextValue}>
+        <div data-slot="select" />
+      </SelectContext.Provider>
+    );
+  }
+
+  // For non-native, pass all props to Radix Root
+  return (
+    <SelectContext.Provider value={contextValue}>
+      <SelectPrimitive.Root data-slot="select" {...props} />
+    </SelectContext.Provider>
+  );
 }
 
 function SelectGroup({
+  label,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
+}: React.ComponentProps<typeof SelectPrimitive.Group> & {
+  label?: string;
+}) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    // For native select, we can use optgroup
+    return (
+      <optgroup
+        label={label}
+        data-slot="select-group"
+        {...(props as React.OptgroupHTMLAttributes<HTMLOptGroupElement>)}
+      />
+    );
+  }
+
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  const context = React.useContext(SelectContext);
+
+  // For native select, the value is handled by the select element itself
+  if (context.isNative) {
+    return null;
+  }
+
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
@@ -33,6 +94,36 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: 'sm' | 'default';
 }) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    // For native select, we'll render the select element here
+    // The children will contain the options
+    return (
+      <select
+        data-slot="select-trigger"
+        data-size={size}
+        className={cn(
+          'border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 w-full appearance-none rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8',
+          className,
+        )}
+        value={context.value === undefined ? '' : context.value}
+        onChange={(e) => context.onValueChange?.(e.target.value)}
+        disabled={context.disabled}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+          backgroundPosition: 'right 0.5rem center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: '1.5em 1.5em',
+        }}
+        {...(props as React.SelectHTMLAttributes<HTMLSelectElement>)}
+      >
+        {children}
+      </select>
+    );
+  }
+
+  // For non-native Radix select, use props as-is since they should be compatible
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -57,6 +148,13 @@ function SelectContent({
   position = 'popper',
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const context = React.useContext(SelectContext);
+
+  // For native select, content is not needed as options are inside the select element
+  if (context.isNative) {
+    return null;
+  }
+
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -90,6 +188,13 @@ function SelectLabel({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Label>) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    // For native select, label is not rendered inside the select
+    return null;
+  }
+
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
@@ -102,8 +207,25 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  value,
+  disabled,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    return (
+      <option
+        data-slot="select-item"
+        value={value}
+        disabled={disabled}
+        {...(props as React.OptionHTMLAttributes<HTMLOptionElement>)}
+      >
+        {children}
+      </option>
+    );
+  }
+
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -111,6 +233,8 @@ function SelectItem({
         "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none hover:cursor-pointer data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className,
       )}
+      value={value}
+      disabled={disabled}
       {...props}
     >
       <span className="absolute right-2 flex size-3.5 items-center justify-center">
@@ -127,6 +251,13 @@ function SelectSeparator({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Separator>) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    // Native selects don't support separators
+    return null;
+  }
+
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
@@ -140,6 +271,13 @@ function SelectScrollUpButton({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    // Native selects don't need scroll buttons
+    return null;
+  }
+
   return (
     <SelectPrimitive.ScrollUpButton
       data-slot="select-scroll-up-button"
@@ -158,6 +296,13 @@ function SelectScrollDownButton({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+  const context = React.useContext(SelectContext);
+
+  if (context.isNative) {
+    // Native selects don't need scroll buttons
+    return null;
+  }
+
   return (
     <SelectPrimitive.ScrollDownButton
       data-slot="select-scroll-down-button"

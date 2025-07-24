@@ -100,6 +100,7 @@ export function DynamicFormField({
                       value={formField.value?.toString() || ''}
                       onChange={formField.onChange}
                       disabled={disabled}
+                      isNative={true}
                     />
                   );
                 case 'photo':
