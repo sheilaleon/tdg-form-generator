@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-import { Input } from '../ui/input';
+import { Input } from '@/components/ui/input';
 
 import { ProcessedField } from '@/types/form';
 

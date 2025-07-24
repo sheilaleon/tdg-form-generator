@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-import { Textarea } from '../ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 
 import { ProcessedField } from '@/types/form';
 

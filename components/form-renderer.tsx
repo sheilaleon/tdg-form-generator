@@ -4,6 +4,7 @@ import { DynamicFormField } from './dynamic-form-field';
 import { Card, CardContent } from './ui/card';
 import { Form } from './ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -147,11 +148,13 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
     form.reset(defaultValues);
     onReset();
 
-    // Reset scroll position to top of the page
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
+    // Reset scroll position to top of the page after DOM updates
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    }, 100);
   };
 
   const renderField = (field: any, index: number, fields: any[]) => {
@@ -271,6 +274,9 @@ export function FormRenderer({ spec, onSubmit, onReset }: FormRendererProps) {
             size="lg"
             disabled={form.formState.isSubmitting}
           >
+            {form.formState.isSubmitting && (
+              <Loader2 className="mr-2 animate-spin" />
+            )}
             {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
