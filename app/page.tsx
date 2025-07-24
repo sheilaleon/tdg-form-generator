@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -104,10 +105,21 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               {submittedData ? (
-                <div className="max-h-96 overflow-y-auto rounded bg-slate-700 text-slate-100">
-                  <pre className="scrollable max-w-xl p-4 text-sm break-words whitespace-pre-wrap">
-                    {JSON.stringify(submittedData, null, 2)}
-                  </pre>
+                <div>
+                  <ScrollArea
+                    className="w-96 rounded-md bg-slate-700 whitespace-nowrap text-slate-100"
+                    type="always"
+                  >
+                    <pre className="w-max p-4 text-sm break-words whitespace-pre-wrap">
+                      {JSON.stringify(submittedData, null, 2)}
+                    </pre>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+                  {/* <div className="max-h-96 max-w-20 overflow-x-clip overflow-y-auto rounded ">
+                    <pre className="scrollable w-full p-4 text-sm break-words whitespace-pre-wrap">
+                      {JSON.stringify(submittedData, null, 2)}
+                    </pre>
+                  </div> */}
                 </div>
               ) : (
                 <div className="bg-muted rounded-md p-4 text-center">
